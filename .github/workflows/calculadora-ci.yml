@@ -1,34 +1,22 @@
-
 name: Calculadora CI with Maven
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ '17', '21' ]
 
     steps:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar el JDK ${{ matrix.java }}
+      - name: Configurar el JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java }}
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Compilar y empaquetar con Maven
-        run: mvn clean package
-
-      - name: Guardar la Calculadora compilada
-        uses: actions/upload-artifact@v4
-        with:
-          name: calculadora-app-java${{ matrix.java }}
-          path: target/*.jar
+      - name: Compilar y ejecutar tests
+        run: mvn clean test
