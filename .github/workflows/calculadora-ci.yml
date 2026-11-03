@@ -1,22 +1,54 @@
-name: Calculadora CI with Maven
+name: Pipeline CI Avanzado
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Descargar el código del repositorio
+      - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Configurar el JDK 17
+      - name: Configurar Java 17 y Caché
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
 
-      - name: Compilar y ejecutar tests
-        run: mvn clean test
+      - name: Ejecutar Tests Unitarios
+        run: mvn test
+
+      - name: Subir Reporte de Cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reporte-cobertura-jacoco
+          path: target/site/jacoco/
+          retention-days: 7
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Construir el JAR
+        run: mvn package -DskipTests
+
+      - name: Subir Artefacto JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: calculadora-app
+          path: target/*.jar
+          retention-days: 7
